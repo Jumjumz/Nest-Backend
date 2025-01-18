@@ -1,18 +1,23 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { MoodService } from './mood.service';
+import { Injectable } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { Mood } from './mood.schema';
+import { CreateMoodDto } from './dto/create-mood.dto';
 
-describe('MoodService', () => {
-  let service: MoodService;
+@Injectable()
+export class MoodService {
+  constructor(@InjectModel(Mood.name) private moodModel: Model<Mood>) {}
 
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [MoodService],
-    }).compile();
+  async create(createMoodDto: CreateMoodDto): Promise<Mood> {
+    const createdMood = new this.moodModel(createMoodDto);
+    return createdMood.save();
+  }
 
-    service = module.get<MoodService>(MoodService);
-  });
+  async findAll(): Promise<Mood[]> {
+    return this.moodModel.find().exec();
+  }
 
-  it('should be defined', () => {
-    expect(service).toBeDefined();
-  });
-});
+  async delete(id: string): Promise<Mood> {
+    return this.moodModel.findByIdAndDelete(id).exec();
+  }
+}
